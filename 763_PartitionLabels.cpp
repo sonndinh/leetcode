@@ -1,5 +1,29 @@
 class Solution {
 public:
+    // O(n) time.
+    vector<int> partitionLabels(string S) {
+        int last_occur[26] = {};
+        vector<int> ret;
+        int right = 0, left = 0;
+        
+        // Compute the last occurrence of each character.
+        for (int i = 0; i < S.size(); ++i) {
+            last_occur[S[i] - 'a'] = i;
+        }
+        
+        for (int i = 0; i < S.size(); ++i) {
+            right = max(right, last_occur[S[i] - 'a']);
+            
+            if (i == right) {
+                // Reach the end of the current partition.
+                ret.push_back(right - left + 1);
+                left = right + 1;
+            }
+        }
+        
+        return ret;
+    }
+	
     vector<int> partitionLabels(string S) {
         vector<int> ret;
         vector<int> partitions; // Starting index of each partition.

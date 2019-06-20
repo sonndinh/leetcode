@@ -17,7 +17,7 @@ public:
     }
     
     // Using the 3rd idea in the solution.
-    vector<int> maxSlidingWindow(vector<int>& nums, int k) {
+    vector<int> maxSlidingWindow2(vector<int>& nums, int k) {
         if (k == 1 || k == 0)
             return nums;
         
@@ -36,6 +36,47 @@ public:
                 ret.push_back(max(right[i], left[i + k - 1]));
             else
                 ret.push_back(left[i + k - 1]);
+        }
+        
+        return ret;
+    }
+
+    void update_deque(vector<int>& nums, deque<int>& deck, int i, int k) {
+        // Remove element not in the current window.
+        if (!deck.empty() && deck.front() == i - k)
+            deck.pop_front();
+        
+        // Remove elements smaller than element at index i.
+        while (!deck.empty() && nums[deck.back()] < nums[i]) {
+            deck.pop_back();
+        }
+    }
+    
+    // Use a deque. Time O(n), space O(k) for deque.
+    vector<int> maxSlidingWindow(vector<int>& nums, int k) {
+        if (nums.empty() || k == 1)
+            return nums;
+        
+        // A double-ended queue containing indexes to the elements of array.
+        deque<int> deck;
+        vector<int> ret;
+        
+        int max_idx = 0;
+        // Consider first k elements.
+        for (int i = 0; i < k; ++i) {
+            update_deque(nums, deck, i, k);
+            deck.push_back(i);
+            if (nums[i] > nums[max_idx])
+                max_idx = i;
+        }
+        
+        ret.push_back(nums[max_idx]);
+        
+        // Consider the remaining elements.
+        for (int i = k; i < nums.size(); ++i) {
+            update_deque(nums, deck, i, k);
+            deck.push_back(i);
+            ret.push_back(nums[deck.front()]);
         }
         
         return ret;

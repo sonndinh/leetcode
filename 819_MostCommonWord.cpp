@@ -8,11 +8,7 @@ private:
         
 public:
     string mostCommonWord(string paragraph, vector<string>& banned) {
-        unordered_set<string> banned_words;
-        for (string& word : banned) {
-            banned_words.insert(word);
-        }
-        
+        unordered_set<string> banned_words(banned.begin(), banned.end());
         unordered_map<string, int> count;
         string token;
         stringstream ss(paragraph);

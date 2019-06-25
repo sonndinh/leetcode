@@ -26,12 +26,19 @@ public:
             graph[v[1]].push_back(v[0]);
         }
         
+        // Set of nodes that have been considered.
+        unordered_set<int> traversed;
+        
         // Use DFS to traverse the dependency graph.
         unordered_set<int> visited;
         for (int i = 0; i < numCourses; ++i) {
+            if (traversed.count(i) > 0)
+                continue;
+            
             if (!visit(graph, visited, i)) {
                 return false;
             }
+            traversed.insert(i);
         }
         
         return true;

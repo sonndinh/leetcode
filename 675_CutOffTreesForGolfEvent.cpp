@@ -34,7 +34,7 @@ public:
         return {-1, -1, -1};
     }
     
-    int cutOffTree(vector<vector<int>>& forest) {
+    int cutOffTree1(vector<vector<int>>& forest) {
         if (forest.empty()) return 0;
         if (forest[0][0] == 0) return -1;
 
@@ -59,6 +59,110 @@ public:
             dist += get<2>(ret);
             i = get<0>(ret);
             j = get<1>(ret);
+        }
+        return dist;
+    }
+    
+    struct Compare {
+        bool operator()(const tuple<int,int,int>& a, const tuple<int,int,int>& b) const {
+            return get<2>(a) < get<2>(b);
+        }
+    };
+    
+    int helper_bidirect_bfs(const vector<vector<int>>& board, queue<tuple<int,int,int>>& fringe, 
+                            unordered_map<int, int>& visited, const unordered_map<int, int>& other_visited) {
+        int m = board.size(), n = board[0].size();
+        auto cell = fringe.front();
+        fringe.pop();
+        int key = get<0>(cell) * n + get<1>(cell);
+        int curr_dist = visited[key];
+        if (other_visited.find(key) != other_visited.cend()) {
+            return visited[key] + other_visited.at(key);
+        }
+         
+        vector<pair<int, int>> adj{{-1,0}, {1,0}, {0,-1}, {0,1}};
+        for (auto p : adj) {
+            int x = get<0>(cell) + p.first, y = get<1>(cell) + p.second;
+            if (x >= 0 && x < m && y >= 0 && y < n && board[x][y] != 0 && 
+                visited.find(x*n + y) == visited.cend()) {
+                fringe.push({x, y, board[x][y]});
+                visited.insert({x*n + y, curr_dist + 1});
+            }
+        }
+        
+        return -1;
+    }
+    
+    // Use bidirectional BFS to find distance between 2 trees.
+    int bidirect_bfs(const vector<vector<int>>& board, const tuple<int,int,int>& s, const tuple<int,int,int>& t) {
+        int m = board.size(), n = board[0].size();
+        queue<tuple<int,int,int>> fringe_s, fringe_t;
+        unordered_map<int, int> visited_s, visited_t;
+        fringe_s.push(s);
+        fringe_t.push(t);
+        // Map from visited cells to their distances.
+        visited_s.insert({get<0>(s) * n + get<1>(s), 0});
+        visited_t.insert({get<0>(t) * n + get<1>(t), 0});
+        
+        int dist = -1;
+        while (!fringe_s.empty() && !fringe_t.empty()) {
+            int ret = helper_bidirect_bfs(board, fringe_s, visited_s, visited_t);
+            if (ret != -1) {
+                dist = ret;
+                break;
+            }
+            
+            ret = helper_bidirect_bfs(board, fringe_t, visited_t, visited_s);
+            if (ret != -1) {
+                dist = ret;
+                break;
+            }
+        }
+        if (dist == -1)
+            return -1;
+        
+        // Find the shortest distance from intersection of two visited sets.
+        for (auto p : visited_s) {
+            int x = p.first / n, y = p.first % n;
+            if (visited_t.find(p.first) != visited_t.cend()) {
+                dist = min(dist, p.second + visited_t[p.first]);
+            }
+        }
+        
+        return dist;
+    }
+    
+    int cutOffTree(vector<vector<int>>& forest) {
+        if (forest.empty()) return 0;
+
+        int m = forest.size(), n = forest[0].size();
+        vector<tuple<int, int, int>> heights;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (forest[i][j] > 1) {
+                    heights.push_back({i, j, forest[i][j]});
+                }
+            }
+        }
+        if (forest[0][0] == 0 || forest[0][0] == 1)
+            heights.push_back({0, 0, forest[0][0]});
+        sort(heights.begin(), heights.end(), Compare());
+        
+        // May need to walk from (0, 0) to the cell with shortest tree first
+        // since we always cut trees in increasing heights.
+        int dist = 0;
+        if (forest[0][0] > get<2>(heights[0])) {
+            int ret = bidirect_bfs(forest, {0, 0, forest[0][0]}, heights[0]);
+            if (ret == -1)
+                return -1;
+            dist += ret;
+        }
+            
+        for (int i = 0; i < heights.size()-1; ++i) {
+            int ret = bidirect_bfs(forest, heights[i], heights[i+1]);
+            if (ret == -1)
+                return -1;
+            dist += ret;
         }
         return dist;
     }

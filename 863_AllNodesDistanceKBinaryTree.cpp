@@ -37,12 +37,8 @@ public:
             ret.push_back(node->val);
             return;
         }
-        if (node->left) {
-            get_nodes(node->left, ret, k - 1);
-        }
-        if (node->right) {
-            get_nodes(node->right, ret, k - 1);
-        }
+		get_nodes(node->left, ret, k - 1);
+		get_nodes(node->right, ret, k - 1);
     }
     
     vector<int> distanceK(TreeNode* root, TreeNode* target, int K) {

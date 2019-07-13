@@ -10,6 +10,43 @@
 class Solution {
 public:
     int widthOfBinaryTree(TreeNode* root) {
+        if (!root) return 0;
+        queue<pair<TreeNode*, unsigned long long>> frontier;
+        frontier.push({root, 1});
+        
+        int width = 1;
+        int count = 1;
+        unsigned long long left = 0, right = 0;
+        int next_count = 0;
+        while (!frontier.empty()) {
+            TreeNode *node = frontier.front().first;
+            unsigned long long pos = frontier.front().second;
+            frontier.pop();
+            
+            if (left == 0) left = pos;
+            
+            if (node->left) {
+                frontier.push({node->left, pos*2});
+                ++next_count;
+            }
+            if (node->right) {
+                frontier.push({node->right, pos*2 + 1});
+                ++next_count;
+            }
+            
+            --count;
+            if (count == 0) {
+                width = max((unsigned long long)width, pos - left + 1);
+                left = 0;
+                count = next_count;
+                next_count = 0;
+            }
+        }
+        
+        return width;
+    }
+	
+    int widthOfBinaryTree1(TreeNode* root) {
         if (!root) 
             return 0;
         

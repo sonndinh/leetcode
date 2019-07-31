@@ -13,6 +13,8 @@ public:
         // Build the segment tree.
         // @node_id: ID of the node in the tree.
         // @start and @end: range of the indexes of the numbers associated with this node.
+        // Note that even though the number of nodes in this tree is (2n-1), it is not 
+        // a complete tree. So we need to reserve more than 2n slots. 4n is enough.
         void build(int node_id, int start, int end) {
             if (start == end) {
                 // Node for a single value.
@@ -49,23 +51,21 @@ public:
 
         // Init parameters and construct the tree.
         SegmentTree(const vector<int>& nums) : input{nums} {
-            tree.resize(2*nums.size());
-            build(1, 0, nums.size() - 1);
+            tree.resize(4 * nums.size());
+            build(1, 0, (int)nums.size() - 1);
         }
         
         // Return the number of elements less than a given number.
         int bsearch(const vector<int>& vals, int num) {
             int left = 0, right = vals.size()-1;
-            int idx = -1;
             
             while (left <= right) {
                 int mid = left + (right - left)/2;
                 if (vals[mid] == num) {
-                    if (mid > 0 && vals[mid-1] == num) {
+                    if (mid > left && vals[mid-1] == num) {
                         right = mid - 1;
                     } else {
-                        idx = mid;
-                        break;
+                        return mid;
                     }
                 } else if (vals[mid] > num) {
                     right = mid - 1;
@@ -73,9 +73,7 @@ public:
                     left = mid + 1;
                 }
             }
-            if (idx >= 0) 
-                return idx;
-            return 0;
+            return left;
         }
         
         // Return the number of smaller elements to the right.
@@ -88,17 +86,22 @@ public:
             if (start == l && end == r) {
                 return bsearch(tree[id].vals, num);
             }
+            
             int mid = start + (end - start)/2;
-            return query(2*id, start, mid, num, l, r) + query(2*id+1, mid+1, end, num, l, r);
+            return query(2*id, start, mid, num, l, min(r, mid)) + 
+                query(2*id+1, mid+1, end, num, max(l, mid+1), r);
         }
     };
     
-    // Use segment tree.
+    // Use segment tree. Time O(n(lgn)^2), space O(nlgn).
     vector<int> countSmaller(vector<int>& nums) {
+        if (nums.empty())
+            return vector<int>();
+        
         SegmentTree seg_tree(nums);
         vector<int> ret(nums.size());
         
-        for (int i = nums.size()-1; i >= 0; --i) {
+        for (int i = (int)nums.size() - 1; i >= 0; --i) {
             ret[i] = seg_tree.query(1, 0, nums.size()-1, nums[i], i+1, nums.size()-1);
         }
         

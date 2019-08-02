@@ -1,5 +1,37 @@
 import threading
 
+
+# Use Condition objects
+class Foo:
+    def __init__(self):
+        self.cond_var = threading.Condition()
+        self.finished_first = False
+        self.finished_second = False
+    
+    def first(self, printFirst: 'Callable[[], None]') -> None:
+        # printFirst() outputs "first". Do not change or remove this line.
+        with cond_var:
+            printFirst()
+            self.finished_first = True
+            self.cond_var.notify_all()
+
+    def second(self, printSecond: 'Callable[[], None]') -> None:
+        # printSecond() outputs "second". Do not change or remove this line.
+        with cond_var:
+            while not self.finished_first:
+                cond_var.wait()
+            printSecond()
+            self.finished_second = True
+            self.cond_var.notify_all()
+
+    def third(self, printThird: 'Callable[[], None]') -> None:
+        # printThird() outputs "third". Do not change or remove this line.
+        with cond_var:
+            while not self.finished_second:
+                cond_var.wait()
+            printThird()
+
+
 # Use Barrier objects.
 class Foo:
     def __init__(self):

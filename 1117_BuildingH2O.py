@@ -4,6 +4,7 @@ from collections import deque
 class H2O:
     def __init__(self):
         self.hydro_queue, self.oxy_queue = deque(), deque()
+        self.lock = threading.Lock()
 
     def hydrogen(self, releaseHydrogen: 'Callable[[], None]') -> None:
         self.hydro_queue.append(releaseHydrogen)
@@ -14,10 +15,12 @@ class H2O:
         self._release()
         
     def _release(self) -> None:
+        self.lock.acquire()
         if len(self.hydro_queue) > 1 and len(self.oxy_queue) > 0:
             self.hydro_queue.popleft()()
             self.hydro_queue.popleft()()
             self.oxy_queue.popleft()()
+        self.lock.release()
 
 
 class H2O2:

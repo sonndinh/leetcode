@@ -1,9 +1,10 @@
 class Solution {
 public:
+    // Time O(n), where n is the number of days. Space O(1) for the table.
     vector<int> dailyTemperatures(vector<int>& T) {
-        // Temperature runs in range [30, 100].
-        vector<list<int>> table(71);
-        table[T.back()-30].push_front((int)T.size() - 1);
+        // Store the closest day to the right that has higher temparature.
+        vector<int> table(71, -1);
+        table[T.back()-30] = (int)T.size() - 1;
         vector<int> ret(T.size(), 0);
         
         // Going through the days in the input from the end to start.
@@ -13,14 +14,16 @@ public:
             int min_idx = T.size();
             for (int j = temp + 1; j <= 100; ++j) {
                 int idx = j - 30;
-                if (!table[idx].empty() && table[idx].front() > i) {
-                    min_idx = min(min_idx, table[idx].front());
+                if (table[idx] != -1) {
+                    min_idx = min(min_idx, table[idx]);
                 }
             }
             if (min_idx < T.size()) {
                 ret[i] = min_idx - i;
             }
-            table[temp - 30].push_front(i);
+            
+            // Update the newest day for this temparature.
+            table[temp - 30] = i;
         }
         
         return ret;

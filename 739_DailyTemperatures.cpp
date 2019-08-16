@@ -1,5 +1,27 @@
 class Solution {
 public:
+    // Use stack. Time O(n) but smaller constant factor, space O(1).
+    vector<int> dailyTemperatures(vector<int>& T) {
+        // Each pair contains temparature of a day and index of that day.
+        stack<pair<int, int>> stk;
+        vector<int> ret(T.size(), 0);
+        
+        for (int i = (int)T.size() - 1; i >= 0; --i) {
+            int curr_temp = T[i];
+            while (!stk.empty() && stk.top().first <= curr_temp) {
+                stk.pop();
+            }
+            if (stk.empty()) {
+                ret[i] = 0;
+            } else {
+                ret[i] = stk.top().second - i;
+            }
+            stk.push({curr_temp, i});
+        }
+        
+        return ret;
+    }
+	
     // Time O(n), where n is the number of days. Space O(1) for the table.
     vector<int> dailyTemperatures(vector<int>& T) {
         // Store the closest day to the right that has higher temparature.

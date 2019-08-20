@@ -3,6 +3,14 @@ class Trie {
         public:
         TrieNode() : is_word{false}, children{nullptr} {}
         
+        ~TrieNode() {
+            for (int i = 0; i < 26; ++i) {
+                if (children[i]) {
+                    delete children[i];
+                }
+            }
+        }
+        
         bool is_word;
         TrieNode* children[26];
     };
@@ -14,6 +22,10 @@ public:
     /** Initialize your data structure here. */
     Trie() {
         root = new TrieNode;
+    }
+    
+    ~Trie() {
+        delete root;
     }
     
     /** Inserts a word into the trie. */

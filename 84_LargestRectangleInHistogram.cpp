@@ -1,5 +1,36 @@
 class Solution {
 public:
+    // Recursive function for the divide and conquer method.
+    int dac_helper(vector<int>& heights, int left, int right) {
+        //cout << "left: " << left << ", right: " << right << endl;
+        if (left > right)
+            return 0;
+        if (left == right)
+            return heights[left];
+        
+        // Find the shortest bar.
+        int lowest_idx = left, lowest = heights[left];
+        for (int i = left+1; i <= right; ++i) {
+            if (heights[i] < lowest) {
+                lowest = heights[i];
+                lowest_idx = i;
+            }
+        }
+        
+        // Split the range around the lowest bar.
+        int max_left = dac_helper(heights, left, lowest_idx-1);
+        int max_right = dac_helper(heights, lowest_idx+1, right);
+        
+        // Maximum area of the block with smallest height.
+        int max_cross = lowest * (right - left + 1);
+        return max(max_left, max(max_right, max_cross));
+    }
+    
+    // Divide and conquer. Expected time O(nlgn), worst case time O(n^2).
+    int largestRectangleArea3(vector<int>& heights) {
+        return dac_helper(heights, 0, (int)heights.size()-1);
+    }
+	
     // Dynamic programming. Time (likely) O(n), space O(n).
     int largestRectangleArea(vector<int>& heights) {
         if (heights.empty())

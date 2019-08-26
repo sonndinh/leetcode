@@ -52,8 +52,50 @@ class Solution {
             return input[left_idx] < input[right_idx]? left_idx : right_idx;
         }
     };
-	
+    
+
 public:
+    // Use stack. Time O(n), space O(n).
+    int largestRectangleArea(vector<int>& heights) {
+        if (heights.empty())
+            return 0;
+        
+        int max_area = 0;
+        // Each entry contains (height, index).
+        stack<pair<int, int>> stk;
+        for (int i = 0; i < heights.size(); ++i) {
+            if (stk.empty() || heights[i] >= stk.top().first) {
+                stk.push({heights[i], i});
+            } else {
+                while (!stk.empty() && heights[i] < stk.top().first) {
+                    int height = stk.top().first;
+                    stk.pop();
+                    int left_idx = -1;
+                    if (!stk.empty()) {
+                        left_idx = stk.top().second;
+                    }
+                    max_area = max(max_area, height * (i - left_idx - 1));
+                }
+                
+                stk.push({heights[i], i});
+            }
+        }
+        
+        // Process the remaining entries.
+        while (!stk.empty()) {
+            auto p = stk.top();
+            stk.pop();
+            int left_idx = -1;
+            if (!stk.empty()) {
+                left_idx = stk.top().second;
+            }
+            int width = heights.size() - left_idx - 1;
+            max_area = max(max_area, p.first * width);
+        }
+        
+        return max_area;
+    }
+    
     // Compute the maximum block from a given range of bars.
     int helper(vector<int>& heights, int left, int right, const SegmentTree& tree) {
         if (left > right)
@@ -79,10 +121,9 @@ public:
         SegmentTree tree(heights);
         return helper(heights, 0, (int)heights.size()-1, tree);
     }
-	
+    
     // Recursive function for the divide and conquer method.
     int dac_helper(vector<int>& heights, int left, int right) {
-        //cout << "left: " << left << ", right: " << right << endl;
         if (left > right)
             return 0;
         if (left == right)
@@ -110,9 +151,9 @@ public:
     int largestRectangleArea3(vector<int>& heights) {
         return dac_helper(heights, 0, (int)heights.size()-1);
     }
-	
+    
     // Dynamic programming. Time (likely) O(n), space O(n).
-    int largestRectangleArea(vector<int>& heights) {
+    int largestRectangleArea2(vector<int>& heights) {
         if (heights.empty())
             return 0;
         

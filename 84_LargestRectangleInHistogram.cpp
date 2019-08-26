@@ -1,5 +1,85 @@
 class Solution {
+    struct SegmentTree {
+        // Each node in the tree contains the index of the bar with minimum of height 
+        // within the range represented by the corresponding node.
+        vector<int> tree;
+        const vector<int>& input;
+        
+        // Recursively build the segment tree. 
+        // @input: the input array for which we are building the segment tree.
+        // @left: left index of the range in the input array.
+        // @right: right index of the range in the input array.
+        // @ idx: index of the correponding node in the segment tree.
+        void build(int left, int right, int idx) {
+            if (left == right) {
+                tree[idx] = left;
+            } else {
+                int mid = left + (right - left)/2;
+                build(left, mid, 2 * idx); // Build left child.
+                build(mid+1, right, 2 * idx + 1); // Build right child.
+                tree[idx] = input[tree[2*idx]] < input[tree[2*idx+1]]? tree[2*idx] : tree[2*idx+1];
+            }
+        }
+        
+        // Constructor.
+        SegmentTree(const vector<int>& heights) : input(heights) {
+            tree.resize(4 * input.size());
+            build(0, (int)input.size()-1, 1);
+        }
+        
+        // Query the index of shortest bar for the bars within a given range.
+        // @idx: index of the node in the segment tree.
+        // @tl, @tr: left and right indexes of elements represented by this node.
+        // @left, @right: left and right indexes of the query range.
+        int min_query(int idx, int tl, int tr, int left, int right) const {
+            if (left > right) {
+                return -1;
+            }
+            
+            if (left == tl && right == tr) {
+                // Query range coincide with the node's segment.
+                return tree[idx];
+            }
+            
+            // Compute ranges for the children nodes.
+            int tm = tl + (tr - tl)/2;
+            int left_idx = min_query(2*idx, tl, tm, left, min(tm, right));
+            int right_idx = min_query(2*idx+1, tm+1, tr, max(tm+1, left), right);
+            if (left_idx == -1)
+                return right_idx;
+            if (right_idx == -1)
+                return left_idx;
+            return input[left_idx] < input[right_idx]? left_idx : right_idx;
+        }
+    };
+	
 public:
+    // Compute the maximum block from a given range of bars.
+    int helper(vector<int>& heights, int left, int right, const SegmentTree& tree) {
+        if (left > right)
+            return 0;
+        if (left == right)
+            return heights[left];
+        
+        // Find the index of the shortest bar.
+        int idx = tree.min_query(1, 0, (int)heights.size()-1, left, right);
+        
+        int max_left = helper(heights, left, idx - 1, tree);
+        int max_right = helper(heights, idx + 1, right, tree);
+        int max_cross = heights[idx] * (right - left + 1);
+        
+        return max(max_left, max(max_right, max_cross));
+    }
+    
+    // Divide and conquer using segment tree.
+    // Time O(nlgn). Space O(n) for the segment tree.
+    int largestRectangleArea4(vector<int>& heights) {
+        if (heights.empty())
+            return 0;
+        SegmentTree tree(heights);
+        return helper(heights, 0, (int)heights.size()-1, tree);
+    }
+	
     // Recursive function for the divide and conquer method.
     int dac_helper(vector<int>& heights, int left, int right) {
         //cout << "left: " << left << ", right: " << right << endl;
